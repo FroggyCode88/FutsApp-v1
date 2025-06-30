@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: Futsapp
+
+  output:
+      ansi:
+        enabled: ALWAYS
+  batch:
+    initialize-schema: never
+  datasource:
+    url: jdbc:postgresql://localhost:5432/futsapp
+    username: admin
+    password: admin01.
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: false
+    #database-platform: org.hibernate.dialect.PostgreSQLDialect  docker
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  docker:
+    compose:
+      enabled: false
+
+logging:
+  config: classpath:log4j2-spring.xml
+
+futsapp:
+  app:
+    jwt:
+      secret: ======================futsapp=Spring===========================
+      expiration-ms: 3600000
