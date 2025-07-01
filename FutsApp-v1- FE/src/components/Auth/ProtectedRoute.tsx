@@ -8,26 +8,14 @@ interface ProtectedRouteProps {
   requiredRole?: 'PLAYER' | 'ORGANIZER';
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole }) => {
-  const { user, loading } = useAuth();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
+export default function ProtectedRoute({ requiredRole, children }: ProtectedRouteProps) {
+  const { user, activeRole } = useAuth();
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-
-  if (requiredRole && user.ruolo !== requiredRole) {
-    return <Navigate to={user.ruolo === 'PLAYER' ? '/home/player' : '/home/organizer'} replace />;
+  if (requiredRole && activeRole !== requiredRole) {
+    // se l’utente non ha quel ruolo attivo, lo rimando alla sua home
+    return <Navigate to={activeRole === 'ORGANIZER' ? '/home/organizer' : '/home/player'} replace />;
   }
-
   return <>{children}</>;
-};
-
-export default ProtectedRoute;
+}

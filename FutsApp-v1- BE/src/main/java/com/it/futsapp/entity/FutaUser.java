@@ -1,5 +1,6 @@
 package com.it.futsapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,6 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Entity
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 @Table(name = "FUTAUSER", uniqueConstraints = {@UniqueConstraint(columnNames = {"fiscalCode"})})
 public class FutaUser extends UserBaseEntity {
 

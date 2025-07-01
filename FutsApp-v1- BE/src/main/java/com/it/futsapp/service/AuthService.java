@@ -22,15 +22,19 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
+@Transactional
 public class AuthService {
 
     @Autowired
@@ -62,12 +66,16 @@ public class AuthService {
 
             // Estrai direttamente il FutaUser collegato
             FutaUser profile = cred.getFutaUser();
-
+            List<String> roles = cred.getRoles()
+                    .stream()
+                    .map(r -> r.getName().name()) // ["PLAYER","ORGANIZER"]
+                    .collect(Collectors.toList());
             AuthResponse response = new AuthResponse(
                     jwt,
                     userDetails.getId(),
                     userDetails.getUsername(),
-                    profile
+                    profile,
+                    roles
             );
             log.info("Authentication success: {}", response);
             return ResponseEntity.ok(response);
