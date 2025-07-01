@@ -1,5 +1,6 @@
 package com.it.futsapp.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,6 +13,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 @Entity
 @Table(name = "FUTACRED", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"username"}),
@@ -34,7 +36,7 @@ public class FutaCred extends UserBaseEntity {
     @JoinColumn(name = "futauser_id", referencedColumnName = "user_uuid")
     private FutaUser futaUser;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name="user_roles",
             joinColumns=@JoinColumn(name="user_id", referencedColumnName="id"),
