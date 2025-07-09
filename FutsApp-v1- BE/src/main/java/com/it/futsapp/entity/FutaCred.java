@@ -38,9 +38,9 @@ public class FutaCred extends UserBaseEntity {
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name="user_roles",
-            joinColumns=@JoinColumn(name="user_id", referencedColumnName="id"),
-            inverseJoinColumns=@JoinColumn(name="role_id", referencedColumnName="role_id")
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),      // id di FUTACRED
+            inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "role_id")  // role_id di ROLES
     )
     private Set<Role> roles;
 

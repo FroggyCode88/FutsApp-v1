@@ -1,6 +1,6 @@
 package com.it.futsapp.payload.response;
 
-import com.it.futsapp.entity.FutaUser;
+import com.it.futsapp.dto.UserProfileDto;
 
 import java.util.List;
 
@@ -8,7 +8,7 @@ public record AuthResponse(
         String token,
         Long id,
         String username,
-        FutaUser user,
+        UserProfileDto user,
         List<String> roles
 
 ) {}

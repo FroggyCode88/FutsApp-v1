@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -23,20 +25,19 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
     private static final String[] CSRF_IGNORING_MATCHERS = {
             "/rest/auth/**", "/fustapp/**"};
     private final CustomUserDetailsService userDetailsService;
 
     @Autowired
-    public SecurityConfig(CustomUserDetailsService userDetailsService)
-    {
+    public SecurityConfig(CustomUserDetailsService userDetailsService)    {
         this.userDetailsService = userDetailsService;
     }
 
     @Bean
-    protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception
-    {
+    protected SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception    {
         http.csrf(AbstractHttpConfigurer::disable)
                 .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -52,8 +53,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JWTAuthorizationFilter authenticationJwtTokenFilter()
-    {
+    public JWTAuthorizationFilter authenticationJwtTokenFilter()    {
         return new JWTAuthorizationFilter();
     }
 
@@ -73,19 +73,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception
-    {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception    {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource()
-    {
+    public CorsConfigurationSource corsConfigurationSource()    {
         CorsConfiguration config = new CorsConfiguration();
         // Aggiungi qui tutti gli origin che ti servono:
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",                       // sviluppo React
-                "https://wanted-moose-cleanly.ngrok-free.app", // tunnel ngrok
+                // "https://wanted-moose-cleanly.ngrok-free.app", // tunnel ngrok per test
                 "https://futsapp.com"                          // dominio di produzione
         ));
         // Includi OPTIONS per i preflight

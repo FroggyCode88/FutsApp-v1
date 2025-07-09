@@ -1,5 +1,6 @@
 package com.it.futsapp.service;
 
+import com.it.futsapp.dto.UserProfileDto;
 import com.it.futsapp.entity.*;
 import com.it.futsapp.payload.request.LoginRequest;
 import com.it.futsapp.payload.request.SignupRequest;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Log4j2
-@Transactional
+
 public class AuthService {
 
     @Autowired
@@ -54,44 +55,67 @@ public class AuthService {
 
     public ResponseEntity<?> authenticateUser(LoginRequest loginRequest) {
         try {
-            Authentication auth = authenticationManager
-                    .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password()));
+            // 1️⃣ Autenticazione
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.email(), loginRequest.password()));
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-            String jwt = jwtUtils.generateJwtToken(auth);
-            CustomUserDetailsImpl userDetails = (CustomUserDetailsImpl) auth.getPrincipal();
-            // Recupera il FutaCred con roles e user
-            FutaCred cred = futaCredRepository.findById(userDetails.getId())
-                    .orElseThrow(() -> new RuntimeException("Credenziali non trovate per id: " + userDetails.getId()));
+            // 2️⃣ Carico il FutaCred completo con ruoli e utente associato
+            FutaCred cred = futaCredRepository.findWithRolesAndUserById(((CustomUserDetailsImpl) auth.getPrincipal()).getId())
+                    .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+            log.info("Ruoli caricati da DB: {}", cred.getRoles());
+            // 3️⃣ Costruisco il UserDetails con authorities corrette
+            CustomUserDetailsImpl userDetails = CustomUserDetailsImpl.build(cred);
+            log.info("Authorities nel userDetails: {}", userDetails.getAuthorities());
+            // 4️⃣ Genero il JWT token includendo le authorities
+            String jwt = jwtUtils.generateJwtToken(
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
+            );
 
-            // Estrai direttamente il FutaUser collegato
+            // 5️⃣ Creo il DTO per il profilo utente
             FutaUser profile = cred.getFutaUser();
-            List<String> roles = cred.getRoles()
-                    .stream()
-                    .map(r -> r.getName().name()) // ["PLAYER","ORGANIZER"]
-                    .collect(Collectors.toList());
+            UserProfileDto profileDto = new UserProfileDto(
+                    profile.getId(),
+                    profile.getNome(),
+                    profile.getCognome(),
+                    profile.getEmail(),
+                    profile.getTelefono(),
+                    profile.getCodiceFiscale(),
+                    profile.getDataNascita(),
+                    profile.getRuolo().name()
+            );
+
+            // 6️⃣ Estraggo i ruoli come stringa per la risposta
+            List<String> roles = cred.getRoles().stream()
+                    .map(r -> r.getName().name()) // es. ["PLAYER", "ORGANIZER"]
+                    .toList();
+
+            // 7️⃣ Creo la risposta
             AuthResponse response = new AuthResponse(
                     jwt,
                     userDetails.getId(),
                     userDetails.getUsername(),
-                    profile,
+                    profileDto,
                     roles
             );
+
             log.info("Authentication success: {}", response);
             return ResponseEntity.ok(response);
+
         } catch (AuthenticationException e) {
             log.error("Authentication failed: {}", e.getMessage());
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
                     .body(new MessageResponse(HttpStatus.UNAUTHORIZED.name(), e.getMessage()));
-        }catch (Exception e2){
+        } catch (Exception e2) {
             log.error("Error during authentication: {}", e2.getMessage(), e2);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .build();
+                    .body(new MessageResponse(HttpStatus.INTERNAL_SERVER_ERROR.name(), "Errore interno durante l'autenticazione"));
         }
     }
 
+    @Transactional
     public ResponseEntity<MessageResponse> registerUser(SignupRequest request) {
         try {
 
@@ -107,6 +131,7 @@ public class AuthService {
                     .cognome(request.cognome())
                     .codiceFiscale(request.codiceFiscale().toUpperCase())
                     .dataNascita(request.dataNascita())
+                    .creatoIl(OffsetDateTime.now())
                     .telefono(request.telefono())
                     .ruolo(request.ruolo())
                     .build();

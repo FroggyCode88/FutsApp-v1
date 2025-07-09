@@ -36,7 +36,7 @@ public class CustomUserDetailsImpl implements UserDetails {
 
     public static CustomUserDetailsImpl build(FutaCred user) {
         List<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName().name()))
                 .collect(Collectors.toList());
 
         return new CustomUserDetailsImpl(
