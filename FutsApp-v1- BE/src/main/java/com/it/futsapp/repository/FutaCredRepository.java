@@ -12,4 +12,7 @@ public interface FutaCredRepository extends JpaRepository<FutaCred, Long> {
     @EntityGraph(attributePaths = "roles")
     Optional<FutaCred> findByUsername(String username);
     Boolean existsByUsername(String username);
+    // Carica FutaCred **insieme** ai ruoli
+    @EntityGraph(attributePaths = {"roles", "futaUser"})
+    Optional<FutaCred> findWithRolesAndUserById(Long id);
 }

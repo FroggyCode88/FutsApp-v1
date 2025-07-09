@@ -8,7 +8,7 @@ spring:
   batch:
     initialize-schema: never
   datasource:
-    url: jdbc:postgresql://localhost:5432/futsapp
+    url: jdbc:postgresql://api.futsapp.com:5432/futsapp
     username: admin
     password: admin01.
     driver-class-name: org.postgresql.Driver
